@@ -1,0 +1,19 @@
+{
+  "short_name": "Semáforo",
+  "name": "Semáforo Admisión Judicial Necochea",
+  "description": "Evaluador de admisibilidad para el Beneficio de Litigar sin Gastos en el Dpto. Judicial de Necochea.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512 any",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F8FAFC",
+  "theme_color": "#4F46E5",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "lang": "es-AR"
+}

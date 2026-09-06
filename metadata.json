@@ -1,0 +1,6 @@
+{
+  "name": "Semáforo Admisión",
+  "description": "Evaluador de admisibilidad para el Beneficio de Litigar sin Gastos en el Departamento Judicial de Necochea, integrando el Índice de Crianza de adolescentes y vulnerabilidad social.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
