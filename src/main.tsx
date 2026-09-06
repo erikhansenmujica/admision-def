@@ -3,8 +3,17 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Register Service Worker for PWA Android capability and listen for updates
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+// Local development must never silently run an outdated offline application.
+const isLocal = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+if (isLocal && 'serviceWorker' in navigator) {
+  void navigator.serviceWorker.getRegistrations().then(registrations => Promise.all(
+    registrations.filter(registration => new URL(registration.scope).pathname === '/').map(registration => registration.unregister())
+  ));
+  void caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('semaforo-judicial-')).map(key => caches.delete(key))));
+}
+
+// Keep offline installation support on deployed sites only.
+if (!isLocal && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   let refreshing = false;
 
   // Listen for controllerchange when the new active Service Worker takes control

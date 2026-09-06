@@ -184,9 +184,10 @@ export default function Section2GrupoFamiliar({
                         max="18"
                         value={child.age !== undefined && child.age !== null ? child.age : ""}
                         onChange={(e) => {
-                          const val = e.target.value === "" ? 0 : Number(e.target.value);
+                          // Allow clearing the exact age while retaining a valid calculation bracket.
+                          const val = e.target.value === "" ? undefined : Math.min(18, Math.max(0, Math.trunc(Number(e.target.value))));
                           onUpdateChild(child.id, "age", val);
-                          onUpdateChild(child.id, "ageBracket", getBracketFromAge(val));
+                          if (val !== undefined) onUpdateChild(child.id, "ageBracket", getBracketFromAge(val));
                         }}
                         placeholder="Ej. 7"
                         className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold font-mono"
@@ -197,7 +198,11 @@ export default function Section2GrupoFamiliar({
                       <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">Rango Etario INDEC</label>
                       <select
                         value={child.ageBracket}
-                        onChange={(e) => onUpdateChild(child.id, "ageBracket", e.target.value as any)}
+                        // An independently selected bracket must not contradict the displayed exact age.
+                        onChange={(e) => {
+                          onUpdateChild(child.id, "ageBracket", e.target.value as Child["ageBracket"]);
+                          onUpdateChild(child.id, "age", undefined);
+                        }}
                         className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700"
                       >
                         <option value="under1">Lactancia (&lt;1 año) - Coef 0.35</option>

@@ -197,6 +197,8 @@ export default function ActaDocument({ input, result, params }: Props) {
             En la ciudad de Necochea, en la fecha y hora indicadas en el encabezado, en los términos de la <strong>Cláusula Séptima</strong> del Convenio de Colaboración recíproca vigente y lo estipulado por el <strong>Art. 78 del Código de Procedimiento Civil y Comercial (CPCC PBA)</strong>, se labra la presente acta de evaluación técnico-social para la tramitación de la <strong>Carpeta SIMP N° {input.nroCarpetaSimp || "en trámite"}</strong>, a fin de determinar la viabilidad del Beneficio de Litigar sin Gastos (o en su defecto, la asistencia directa de la Defensoría Oficial).
           </p>
 
+          {/* Include the recorded health coverage in the printable case. */}
+          <p>¿Posee obra social?: {input.poseeObraSocial === undefined ? "Sin informar" : input.poseeObraSocial ? "Sí" : "No"}</p>
           {/* Section 1: Postulant Data */}
           <div className="mb-5">
             {/* Carry the economic reference periods into the printed report. */}

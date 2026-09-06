@@ -23,6 +23,8 @@ export function printSavedEvaluationActa(savedCase: SavedEvaluation) {
       <span style="display: block; font-size: 12px; font-weight: bold; color: #1e293b; margin-bottom: 6px;">Detalle del Grupo Familiar y Condiciones de Habitabilidad:</span>
       <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; background-color: #f8fafc; display: flex; flex-direction: column; gap: 10px;">
         
+        <!-- Preserve the saved coverage answer when reprinting historical cases. -->
+        <p>¿Posee obra social?: ${savedCase.input.poseeObraSocial === undefined ? "Sin informar" : savedCase.input.poseeObraSocial ? "Sí" : "No"}</p>
         <!-- Housing and Tenancy -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px;">
           <div>

@@ -112,6 +112,8 @@ export interface EvaluationInput {
   tramiteTipo?: string; // id del trámite
   tramiteDetalle?: string;
   ingresoBruto: number;
+  // Distinguish unanswered coverage from an explicit negative answer in historical cases.
+  poseeObraSocial?: boolean;
   gastosSalud: number;
   montoAlquiler?: number; // Canon de alquiler mensual cuando la vivienda es alquilada
   adults: Adult[];

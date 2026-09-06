@@ -30,9 +30,8 @@ import {
 } from "./utils";
 import EconomicParamsSettings from "./components/EconomicParamsSettings";
 import CaseHistory from "./components/CaseHistory";
-import { ShareAndInstallModal } from "./components/ShareAndInstallModal";
 import { ServiceWorkerUpdateNotification } from "./components/ServiceWorkerUpdateNotification";
-import { Scale, RotateCcw, Settings, Share2, Smartphone } from "lucide-react";
+import { Scale, RotateCcw, Settings } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 // Import modular form section components
@@ -51,7 +50,13 @@ export default function App() {
     try {
       const saved = sessionStorage.getItem(DRAFT_STORAGE_KEY) || localStorage.getItem(DRAFT_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        // Repair contradictory age ranges saved by the earlier batched-update bug.
+        const draft = JSON.parse(saved);
+        for (const key of ['children', 'disabledMinors']) {
+          if (Array.isArray(draft[key])) draft[key] = draft[key].map(member =>
+            Number.isFinite(member.age) ? { ...member, ageBracket: getBracketFromAge(member.age) } : member);
+        }
+        return draft;
       }
     } catch {
       // Fallback
@@ -86,6 +91,8 @@ export default function App() {
       : 0
   );
   // Only actual medical expenses belong in the calculation.
+  // Keep coverage unanswered until the operator records it.
+  const [poseeObraSocial, setPoseeObraSocial] = useState<boolean | undefined>(initialDraft?.poseeObraSocial);
   const [gastosSalud, setGastosSalud] = useState<number>(initialDraft?.gastosSalud ?? 0);
   
   // Vulnerability factors require an explicit entry for the consultation.
@@ -107,7 +114,6 @@ export default function App() {
 
   // Collapsible params panel toggle
   const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [showShareModal, setShowShareModal] = useState<boolean>(false);
 
   // Expose real request progress and errors.
   const [isUpdatingParams, setIsUpdatingParams] = useState<boolean>(false);
@@ -126,6 +132,7 @@ export default function App() {
         housingType,
         occupancyStatus,
         montoAlquiler,
+        poseeObraSocial,
         gastosSalud,
         vulnerabilities,
         nroCarpetaSimp,
@@ -139,7 +146,7 @@ export default function App() {
     } catch {
       // Storage quota or unavailable
     }
-  }, [params, adults, children, disabledMinors, disabledAdults, disabledPersons, housingType, occupancyStatus, montoAlquiler, gastosSalud, vulnerabilities, nroCarpetaSimp, fechaConsulta, tramiteTipo, tramiteCategoria, tramiteDetalle]);
+  }, [params, adults, children, disabledMinors, disabledAdults, disabledPersons, housingType, occupancyStatus, montoAlquiler, gastosSalud, poseeObraSocial, vulnerabilities, nroCarpetaSimp, fechaConsulta, tramiteTipo, tramiteCategoria, tramiteDetalle]);
 
   // Auto-save draft on every change
   useEffect(() => {
@@ -165,6 +172,8 @@ export default function App() {
 
   // Handler to load a saved case
   const handleLoadCase = (historicalInput: EvaluationInput, historicalParams: EconomicParams) => {
+    // Restore coverage along with the saved health expenses.
+    setPoseeObraSocial(historicalInput.poseeObraSocial);
     setGastosSalud(historicalInput.gastosSalud);
     // Older cases with no rent amount retain a zero deduction.
     setMontoAlquiler(historicalInput.montoAlquiler ?? 0);
@@ -218,8 +227,9 @@ export default function App() {
   };
 
   const updateChild = (id: string, key: keyof Child, val: any) => {
-    setChildren(
-      children.map((c) => (c.id === id ? { ...c, [key]: val } : c))
+    // Compose batched age and bracket edits instead of overwriting the first update.
+    setChildren(previous =>
+      previous.map((c) => (c.id === id ? { ...c, [key]: val } : c))
     );
   };
 
@@ -247,8 +257,9 @@ export default function App() {
   };
 
   const updateDisabledMinor = (id: string, key: keyof DisabledMinor, val: any) => {
-    setDisabledMinors(
-      disabledMinors.map((m) => (m.id === id ? { ...m, [key]: val } : m))
+    // Preserve both updates when age and its bracket change in the same event.
+    setDisabledMinors(previous =>
+      previous.map((m) => (m.id === id ? { ...m, [key]: val } : m))
     );
   };
 
@@ -351,6 +362,8 @@ export default function App() {
     setHousingType("Casa");
     setOccupancyStatus("Inquilino");
     setMontoAlquiler(0);
+    // A new case must not inherit the prior coverage answer.
+    setPoseeObraSocial(undefined);
     setGastosSalud(0);
     setVulnerabilities({
       violenciaGenero: false,
@@ -375,6 +388,7 @@ export default function App() {
     nroCarpetaSimp,
     fechaConsulta,
     ingresoBruto: totalGrossIncome,
+    poseeObraSocial,
     gastosSalud,
     montoAlquiler,
     adults,
@@ -415,16 +429,6 @@ export default function App() {
           </div>
           <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowShareModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm shadow-indigo-100 flex items-center gap-1.5 transition-all active:scale-95 border border-indigo-500"
-              type="button"
-              id="header-share-app-btn"
-              title="Compartir enlace o instalar en celular Android"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>Compartir / Instalar</span>
-            </button>
             <button
               onClick={() => setShowSettings(!showSettings)}
               className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
@@ -529,6 +533,8 @@ export default function App() {
           housingType={housingType}
           occupancyStatus={occupancyStatus}
           montoAlquiler={montoAlquiler}
+          poseeObraSocial={poseeObraSocial}
+          onUpdateObraSocial={setPoseeObraSocial}
           gastosSalud={gastosSalud}
           onUpdateHousing={setHousingType}
           onUpdateOccupancy={setOccupancyStatus}
@@ -578,12 +584,6 @@ export default function App() {
       {/* NOTIFICACIÓN FLOTANTE DE ACTUALIZACIÓN SERVICE WORKER */}
       <ServiceWorkerUpdateNotification onBeforeReload={saveDraftToStorage} />
 
-      {/* MODAL COMPARTIR E INSTALAR */}
-      <ShareAndInstallModal 
-        isOpen={showShareModal} 
-        onClose={() => setShowShareModal(false)} 
-      />
-
       {/* FOOTER */}
       <footer className="px-6 py-4 text-[10px] text-slate-500 font-medium flex flex-col sm:flex-row justify-between items-center gap-3 bg-white border-t border-slate-200 mt-auto" id="main-footer">
         <div className="flex items-center gap-2 flex-wrap">
@@ -591,13 +591,7 @@ export default function App() {
           <span>•</span>
           <span>Dpto. Judicial Necochea</span>
           <span>•</span>
-          <button 
-            onClick={() => setShowShareModal(true)}
-            className="text-indigo-600 font-bold hover:underline inline-flex items-center gap-1"
-          >
-            <Smartphone className="w-3 h-3" />
-            Instalar en Celular Android / Compartir
-          </button>
+
         </div>
         <span className="uppercase font-bold tracking-tight text-slate-400">Doctrina de Amparo Alimentario 2026</span>
       </footer>
