@@ -462,7 +462,8 @@ export default function App() {
             id="collapsible-settings"
           >
             <div className="max-w-7xl mx-auto px-6 py-6">
-              <EconomicParamsSettings params={params} onChange={next => setParams({ ...next, provenance: { mode: 'manual' } })} />
+              {/* Restore through the official request handler, retaining current values on failure. */}
+              <EconomicParamsSettings onReset={handleResetParams} isUpdating={isUpdatingParams} params={params} onChange={next => setParams({ ...next, provenance: { mode: 'manual' } })} />
             </div>
           </motion.div>
         )}

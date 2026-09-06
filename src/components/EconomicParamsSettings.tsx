@@ -5,21 +5,21 @@
 
 import React, { useState } from "react";
 import { EconomicParams } from "../types";
-import { formatCurrency, DEFAULT_PARAMS } from "../utils";
+// Formatting is independent of the unavailable initial parameter values.
+import { formatCurrency } from "../utils";
 import { Settings, RefreshCw, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 
 interface Props {
   params: EconomicParams;
   onChange: (newParams: EconomicParams) => void;
+  // Reuse the official download flow instead of clearing monetary references.
+  onReset: () => void;
+  isUpdating: boolean;
 }
 
-export default function EconomicParamsSettings({ params, onChange }: Props) {
+// Receive the shared request state so reset preserves provenance and error handling.
+export default function EconomicParamsSettings({ params, onChange, onReset, isUpdating }: Props) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const handleReset = () => {
-    // Clear unavailable references without presenting them as official base values.
-    onChange(DEFAULT_PARAMS);
-  };
 
   const handleChange = (key: keyof EconomicParams, val: number) => {
     onChange({
@@ -86,11 +86,14 @@ export default function EconomicParamsSettings({ params, onChange }: Props) {
               <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Canastas de Referencia INDEC (ingreso manual)</h4>
               <button
                 type="button"
-                onClick={handleReset}
+                // Prevent duplicate downloads while restoring the official values.
+                onClick={onReset}
+                disabled={isUpdating}
                 className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1 font-medium transition-colors bg-slate-100 px-2 py-1 rounded"
                 id="reset-params-btn"
               >
-                <RefreshCw className="w-3.5 h-3.5" /> Restablecer
+                {/* Explain that restoring parameters retrieves official data. */}
+                <RefreshCw className="w-3.5 h-3.5" /> {isUpdating ? "Consultando…" : "Restablecer valores oficiales"}
               </button>
             </div>
 
