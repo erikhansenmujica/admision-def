@@ -20,6 +20,12 @@ npm start
 
 Default port: 3000. Set `PORT` for production. No Gemini or other API key is required.
 
+## Vercel deployment
+
+Deploy the entire project root, including `api/`, `server/`, and `vercel.json`; do not upload only `dist`. The configuration selects Vite, runs `npm run build`, and serves `dist`. Vercel discovers `api/economic-params.ts` as a Node function, which reuses the existing data handler. Its 30-second execution allowance exceeds the 15-second upstream timeout. No `npm start` process or API keys are needed on Vercel.
+
+Commit these files and redeploy the project. In Vercel, the Root Directory must be the directory containing `package.json` and `api/`. Verify that the deployment includes the `/api/economic-params` function, then open `https://YOUR-DEPLOYMENT/api/economic-params`: it should return JSON with `indicators` and `fetchedAt`. A Vercel `NOT_FOUND` response means the function was not deployed; a JSON HTTP 502 means the function ran but the upstream source failed. After redeployment, click **Consultar fuentes oficiales** to replace any previously entered manual values.
+
 ## Official connections
 
 `GET /api/economic-params` queries the [Datos Argentina time-series API](https://apis.datos.gob.ar/series/):
